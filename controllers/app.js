@@ -1,0 +1,139 @@
+const User = require('../models/user');
+validator = require('validator');
+const crypto = require('crypto');
+const qr = require("qrcode");
+const nodemailer = require('nodemailer');
+
+const MIME_TYPES = {
+    'image/jpg': 'jpg',
+    'image/jpeg': 'jpg',
+    'image/png': 'png'
+};
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 25,
+    auth: {
+      user: 'elielmungo9@gmail.com',
+      pass: 'Dexter512'
+    },
+    tls: {
+      rejectUnauthorized: false
+  }
+});
+
+let code;
+
+exports.home = (req, res) => {
+    res.render("home");
+};
+
+exports.getForm = (req, res) => {
+    res.render("signup");
+};
+
+exports.postForm = (req, res) => {
+    const extension = MIME_TYPES[req.file.mimetype];
+    const full_name = req.body.fname +'_'+ req.body.lname;
+    const user = new User({
+        first_name: req.body.fname.toLowerCase(),
+        last_name: req.body.lname.toLowerCase(),
+        email: validator.normalizeEmail(req.body.email),
+        imageUrl: `${req.protocol}://${req.get('host')}/public/files/` + full_name.split(' ').join('_').toLowerCase() + '.' + extension
+    });
+    user.save()
+        .then(() => {
+            code = crypto.randomBytes(4).toString('hex');
+            const num = Math.floor(Math.random()*100);
+            const mailOptions = {
+              from: 'elielmungo9@gmail.com',
+              to: 'elielmungo9@icloud.com',
+              subject: `USCITECH ${num} mail validation`,
+              text: `Votre code de validation: ${code}`
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+              if(error){
+                  User.deleteOne({ _id: user._id })
+                    .then(() => {
+                        res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer S\'il vous plaît' });
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer S\'il vous plaît' });
+                    });
+              }else{
+                res.render("validate", { email: user.email });
+              }
+            })
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(400).render("error",
+                { status: 400,
+                  message: 'Données entrées invalides, cela pourrait être:<ul><li>L\'adresse email entrée a déjà été utilisée</li><li>Une erreur interne du serveur</li></ul>Veuillez réessayer s\'il vous plaît.' });
+        });
+};
+
+exports.generate = (req, res) => {
+    if(req.body.code === code){
+        User.findOne({ email: req.body.email })
+            .then(user => {
+                user ? (() => {
+                    qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
+                        if (err) res.render("error");
+                        const full_name = user.first_name + ' ' + user.last_name;
+                        res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
+                    });
+                })() : (() => {
+                    res.render('error', {
+                        status: 400,
+                        message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+                    });
+                })();
+            })
+            .catch(error => {
+                console.log(error);
+                res.status(400).json({ error });
+            })
+    }else {
+        res.render('error', {
+            status: 400,
+            message: 'Code invalide, veuillez réesayer s\'il vous plaît.'
+        });
+    }
+};
+
+exports.ticket = (req, res) => {
+    User.findOne({ _id: req.params.user_id })
+      .then(user => {
+          user ?
+            (() => res.render('billet', {identity: user.first_name+' '+user.last_name, src: user.imageUrl}))():
+            (() => res.render('error', {status: 404, message: 'QR Code invalide, veuillez nous contacter pour obtenir de l\'aide'}))();
+      })
+      .catch(error => {
+          console.log(error);
+          res.render('error', {status: 500, message: 'Une erreur est survenue, veuillez essayer à nouveau s\'il vous plaît.'})
+        });
+};
+
+exports.regenerate = (req, res) => {
+    User.findOne({ email: req.body.email })
+        .then(user => {
+            user ? (() => {
+                qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
+                    if (err) res.render("error");
+                    const full_name = user.first_name + ' ' + user.last_name;
+                    res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
+                });
+            })() : (() => {
+                res.render('error', {
+                    status: 400,
+                    message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+                });
+            })();
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(400).json({ error });
+        })
+};

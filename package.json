@@ -1,0 +1,20 @@
+{
+  "name": "qr_generator_uscitech",
+  "version": "1.0.0",
+  "description": "A simple QR Code generator for Uscitech",
+  "main": "server.js",
+  "author": "Eliel512",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "express": "^4.17.3",
+    "mongoose": "^6.2.4",
+    "mongoose-unique-validator": "^3.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.4",
+    "nodemailer": "^6.7.2",
+    "pug": "^3.0.2",
+    "qrcode": "^1.5.0",
+    "validator": "^13.7.0"
+  }
+}

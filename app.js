@@ -8,7 +8,7 @@ app = express();
 
 app.set("view engine", "pug");
 
-mongoose.connect('mongodb://localhost:27017/qrgenerator',
+mongoose.connect('mongodb+srv://eliel512:Dexter512@cluster0.yu7rg.mongodb.net/qrgenerator',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))

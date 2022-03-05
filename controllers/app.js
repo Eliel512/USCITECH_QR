@@ -14,7 +14,8 @@ const MIME_TYPES = {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
+    port: 465,
+    secure: true,
     auth: {
       user: 'elielmungo9@gmail.com',
       pass: 'Dexter512'

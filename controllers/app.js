@@ -54,6 +54,7 @@ exports.postForm = (req, res) => {
             };
             transporter.sendMail(mailOptions, (error, info) => {
               if(error){
+                  console.log(error);
                   User.deleteOne({ _id: user._id })
                     .then(() => {
                         res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer S\'il vous plaît' });

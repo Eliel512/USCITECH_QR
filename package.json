@@ -6,10 +6,10 @@
   "author": "Eliel512",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "engines": {
-    "node": "6.11.1"
+    "node": "16.14.0"
   },
   "dependencies": {
     "axios": "^0.26.0",

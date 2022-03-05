@@ -7,6 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.26.0",
+    "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "megajs": "^1.0.2",
     "mongoose": "^6.2.4",

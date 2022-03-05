@@ -5,6 +5,12 @@
   "main": "server.js",
   "author": "Eliel512",
   "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "6.11.1"
+  },
   "dependencies": {
     "axios": "^0.26.0",
     "dotenv": "^16.0.0",

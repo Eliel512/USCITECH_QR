@@ -36,7 +36,7 @@ exports.getForm = (req, res) => {
 
 exports.postForm = (req, res) => {
     const user = new User({
-        _id: mongoose.Schema.Types.ObjectId(),
+        _id: mongoose.Types.ObjectId(),
         first_name: req.body.fname.toLowerCase(),
         last_name: req.body.lname.toLowerCase(),
         email: validator.normalizeEmail(req.body.email),

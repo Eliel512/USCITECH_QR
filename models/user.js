@@ -4,6 +4,15 @@ const mongoose = require('mongoose'),
     validator = require('validator');
 
 const userInfoSchema = new Schema({
+  _id: {
+    type: mongoose.Types.ObjectId,
+    default: mongoose.Types.ObjectId(),
+    validate: {
+      validator: v => mongoose.Types.ObjectId.isValid(v),
+      message: "_id invalide"
+    },
+    set: v => mongoose.Types.ObjectId.isValid(v) ? v : mongoose.Types.ObjectId()
+  },
   joinedAt: {
     type: Date,
     required: true,

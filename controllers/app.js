@@ -3,9 +3,8 @@ validator = require('validator');
 const crypto = require('crypto');
 const qr = require("qrcode");
 const nodemailer = require('nodemailer');
-const fs = require('fs');
 const { File } = require('megajs');
-const { Blob } = require('buffer')
+const { default: mongoose } = require('mongoose');
 
 const MIME_TYPES = {
     'image/jpg': 'jpg',
@@ -36,9 +35,8 @@ exports.getForm = (req, res) => {
 };
 
 exports.postForm = (req, res) => {
-    const extension = MIME_TYPES[req.file.mimetype];
-    const full_name = req.body.fname +'_'+ req.body.lname;
     const user = new User({
+        _id: mongoose.Schema.Types.ObjectId(),
         first_name: req.body.fname.toLowerCase(),
         last_name: req.body.lname.toLowerCase(),
         email: validator.normalizeEmail(req.body.email),

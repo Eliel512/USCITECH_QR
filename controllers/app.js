@@ -3,6 +3,9 @@ validator = require('validator');
 const crypto = require('crypto');
 const qr = require("qrcode");
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const { File } = require('megajs');
+const { Blob } = require('buffer')
 
 const MIME_TYPES = {
     'image/jpg': 'jpg',
@@ -39,7 +42,7 @@ exports.postForm = (req, res) => {
         first_name: req.body.fname.toLowerCase(),
         last_name: req.body.lname.toLowerCase(),
         email: validator.normalizeEmail(req.body.email),
-        imageUrl: `${req.protocol}://${req.get('host')}/public/files/` + full_name.split(' ').join('_').toLowerCase() + '.' + extension
+        imageUrl: res.locals.link
     });
     user.save()
         .then(() => {
@@ -68,16 +71,16 @@ exports.postForm = (req, res) => {
         })
         .catch(error => {
             console.log(error);
-            res.status(400).render("error",
+            res.render("error",
                 { status: 400,
                   message: 'Données entrées invalides, cela pourrait être:<ul><li>L\'adresse email entrée a déjà été utilisée</li><li>Une erreur interne du serveur</li></ul>Veuillez réessayer s\'il vous plaît.' });
         });
 };
 
 exports.generate = (req, res) => {
-    if(req.body.code === code){
-        User.findOne({ email: req.body.email })
-            .then(user => {
+    User.findOne({ email: req.body.email })
+        .then(user => {
+            if(req.body.code === code){
                 user ? (() => {
                     qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
                         if (err) res.render("error");
@@ -86,28 +89,50 @@ exports.generate = (req, res) => {
                     });
                 })() : (() => {
                     res.render('error', {
-                        status: 400,
-                        message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+                        status: 404,
+                        message: 'Code introuvable, veuillez réesayer s\'il vous plaît. Ou contactez-nous pour obtenir de l\'aide.'
                     });
                 })();
-            })
-            .catch(error => {
-                console.log(error);
-                res.status(400).json({ error });
-            })
-    }else {
-        res.render('error', {
-            status: 400,
-            message: 'Code invalide, veuillez réesayer s\'il vous plaît.'
-        });
-    }
+            }else {
+                User.deleteOne({ _id: user._id })
+                    .then(() => {
+                        res.render('error', {
+                            status: 400,
+                            message: 'Code invalide, veuillez réesayer s\'il vous plaît.'
+                        });
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît' });
+                    })
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            res.render('error', {
+                status: 400,
+                message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+            });
+        })
 };
 
 exports.ticket = (req, res) => {
     User.findOne({ _id: req.params.user_id })
       .then(user => {
           user ?
-            (() => res.render('billet', {identity: user.first_name+' '+user.last_name, src: user.imageUrl}))():
+            (() => {
+                const file = File.fromURL(user.imageUrl);
+                file.download((err, data) => {
+                    if(err){
+                        console.log(error);
+                        res.render('error', {status: 500, message: 'Une erreur est survenue, veuillez essayer à nouveau s\'il vous plaît.'});
+                    }
+                    res.render('billet',
+                        {identity: user.first_name+' '+user.last_name,
+                        src: `data:image/jpg;base64,${data.toString('base64')}`
+                    });
+                })
+            })():
             (() => res.render('error', {status: 404, message: 'QR Code invalide, veuillez nous contacter pour obtenir de l\'aide'}))();
       })
       .catch(error => {

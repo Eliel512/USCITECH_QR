@@ -50,23 +50,26 @@ style.
       .container
         .row.align-items-center
           .col-12
+            br
+            br
             .row.align-items-center
-              .col-lg-6.mb-4
-                h1(data-aos='fade-up' data-aos-delay='100') ACCEUIL DE NOUVEAUX ETUDIANTS
-                p.para(data-aos='fade-up' data-aos-delay='200') L’Université des Sciences et Technologies organise, ce 12 Mars 2022, l'Acceuil de nouveux étudiants.
+              .col-lg-4.col-md-2.mb-4
                 p(data-oas='fade-up')
                   span.typed(data-typed-items='Enregistrez vous, Payer votre accès via whatsapp, Et Obtenez votre QR code')
-                p(data-aos='fade-up' data-aos-delay='300')
-                  a.btn.btn-primary.py-3.px-5.btn-pill(href='/signup') Obtenir l'accès
-                p(data-aos='fade-up' data-aos-delay='300')
-                  a.btn.btn-primary.py-3.px-5.btn-pill(href='/confirm') Finaliser le paiement
-              .col-lg-5.ml-auto(data-aos='fade-up' data-aos-delay='500')
-                form.form-box(method='post' action='/regenerate')
-                  h3.h4.text-black.mb-4 Régénérer votre QR code en cas de perte
+              .col-lg-8.ml-auto(data-aos='fade-up' data-aos-delay='500')
+                form.form-box(method='post' action='/confirm')
+                  h3.h4.text-black.mb-4 Pour obtenir votre QR code veuillez payer via whatsapp et obtenez un code de confirmation que vous allez inserer ci-dessous.
+                  a(href='https://wa.me/message/V4OQUVYNXYCGI1' target='_blank')
+                    | Cliquez ici. 
+                    img.img-fluid(src='public/images/wha.png')
+                  br
+                  br
                   .form-group
-                    input.form-control(type='email' name='email' placeholder='Adresse Email')
+                    input.form-control(type='email' name='email' required)
                   .form-group
-                    input.btn.btn-primary.btn-pill(type='submit' value='REGENERER')
+                    input.form-control(type='text' placeholder='insérer le code de confirmation' name='code' minlength='8' maxlength='8' required)
+                  .form-group
+                    input.btn.btn-primary.btn-pill(type='submit' value='VALIDER')
  
 script(src='public/js/jquery-3.3.1.min.js')
 script(src='public/js/jquery-migrate-3.0.1.min.js')

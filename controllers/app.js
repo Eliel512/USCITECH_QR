@@ -13,6 +13,10 @@ exports.getForm = (req, res) => {
     res.render("signup");
 };
 
+exports.getConfirm = (req, res) => {
+    res.render("confirm");
+};
+
 exports.postForm = (req, res) => {
     const code = crypto.randomBytes(4).toString('hex');
     const user = new User({
@@ -33,6 +37,55 @@ exports.postForm = (req, res) => {
                 { status: 400,
                   message: 'Données entrées invalides, cela pourrait être:<ul><li>L\'adresse email entrée a déjà été utilisée</li><li>Une erreur interne du serveur</li></ul>Veuillez réessayer s\'il vous plaît.' });
         });
+};
+
+exports.confirm = (req, res) => {
+    User.findOne({ email: req.body.email })
+        .then(user => {
+            if(req.body.code === user.code){
+                user ? (() => {
+                    User.updateOne({ _id: user._id }, {$set: {
+                        status: true
+                    }})
+                      .then(() => {
+                        qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
+                            if(err){
+                                res.render("error", {
+                                    status: 500,
+                                    message: "Une erreur est survenue, veuillez essayer de regénérer votre QR code à partir de l'acceuil ou <a href='mailto:elielmungo9@gmail.com'>contactez-nous</a> pour obtenir de l'aide."
+                                });
+                            }
+                            const full_name = user.first_name + ' ' + user.last_name;
+                            res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
+                        });
+                      })
+                      .catch(error => {
+                        console.log(error);
+                        res.render('error', {
+                            status: 500,
+                            message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+                        });
+                      });
+                })() : (() => {
+                    res.render('error', {
+                        status: 404,
+                        message: 'Code introuvable, veuillez réesayer s\'il vous plaît. Ou <a href=\'mailto:elielmungo9@gmail.com\'>contactez-nous</a> pour obtenir de l\'aide.'
+                    });
+                })();
+            }else {
+                res.render('error', {
+                    status: 400,
+                    message: 'Code invalide, veuillez réesayer s\'il vous plaît.'
+                });
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            res.render('error', {
+                status: 400,
+                message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+            });
+        })
 };
 
 exports.generate = (req, res) => {
@@ -160,8 +213,8 @@ exports.table = (req, res) => {
             User.find({ })
               .then(users => {
                   let keys = {
-                      ...users[0].schema.paths
-                  };
+                      ...User.schema.paths
+                  }
                   delete keys._id;
                   delete keys.__v;
                   delete keys.imageUrl;
@@ -183,7 +236,7 @@ exports.table = (req, res) => {
             User.find({ status: true })
               .then(users => {
                   let keys = {
-                      ...users[0].schema.paths
+                      ...User.schema.paths
                   };
                   delete keys._id;
                   delete keys.__v;
@@ -206,7 +259,7 @@ exports.table = (req, res) => {
             User.find({ status: false })
               .then(users => {
                   let keys = {
-                      ...users[0].schema.paths
+                      ...User.schema.paths
                   };
                   delete keys._id;
                   delete keys.__v;

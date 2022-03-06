@@ -1,31 +1,9 @@
 const User = require('../models/user');
-validator = require('validator');
+const validator = require('validator');
 const crypto = require('crypto');
 const qr = require("qrcode");
-const nodemailer = require('nodemailer');
 const { File } = require('megajs');
 const { default: mongoose } = require('mongoose');
-
-const MIME_TYPES = {
-    'image/jpg': 'jpg',
-    'image/jpeg': 'jpg',
-    'image/png': 'png'
-};
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: 'elielmungo9@gmail.com',
-      pass: 'Dexter512'
-    },
-    tls: {
-      rejectUnauthorized: false
-  }
-});
-
-let code;
 
 exports.home = (req, res) => {
     res.render("home");
@@ -36,38 +14,18 @@ exports.getForm = (req, res) => {
 };
 
 exports.postForm = (req, res) => {
+    const code = crypto.randomBytes(4).toString('hex');
     const user = new User({
         _id: mongoose.Types.ObjectId(),
-        first_name: req.body.fname.toLowerCase(),
-        last_name: req.body.lname.toLowerCase(),
+        first_name: req.body.fname.toUpperCase(),
+        last_name: req.body.lname.toUpperCase(),
         email: validator.normalizeEmail(req.body.email),
+        code: code,
         imageUrl: res.locals.link
     });
     user.save()
         .then(() => {
-            code = crypto.randomBytes(4).toString('hex');
-            const num = Math.floor(Math.random()*100);
-            const mailOptions = {
-              from: 'elielmungo9@gmail.com',
-              to: 'elielmungo9@icloud.com',
-              subject: `USCITECH ${num} mail validation`,
-              text: `Votre code de validation: ${code}`
-            };
-            transporter.sendMail(mailOptions, (error, info) => {
-              if(error){
-                  console.log(error);
-                  User.deleteOne({ _id: user._id })
-                    .then(() => {
-                        res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer S\'il vous plaît' });
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        res.render('error', { status: 500, message: 'Une erreur est survenue, veuillez réesayer S\'il vous plaît' });
-                    });
-              }else{
-                res.render("validate", { email: user.email });
-              }
-            })
+            res.render("validate", { email: user.email });
         })
         .catch(error => {
             console.log(error);
@@ -80,13 +38,30 @@ exports.postForm = (req, res) => {
 exports.generate = (req, res) => {
     User.findOne({ email: req.body.email })
         .then(user => {
-            if(req.body.code === code){
+            if(req.body.code === user.code){
                 user ? (() => {
-                    qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
-                        if (err) res.render("error");
-                        const full_name = user.first_name + ' ' + user.last_name;
-                        res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
-                    });
+                    User.updateOne({ _id: user._id }, {$set: {
+                        status: true
+                    }})
+                      .then(() => {
+                        qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
+                            if(err){
+                                res.render("error", {
+                                    status: 500,
+                                    message: "Une erreur est survenue, veuillez essayer de regénérer votre QR code à partir de l'acceuil ou contactez-nous pour obtenir de l'aide."
+                                });
+                            }
+                            const full_name = user.first_name + ' ' + user.last_name;
+                            res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
+                        });
+                      })
+                      .catch(error => {
+                        console.log(error);
+                        res.render('error', {
+                            status: 500,
+                            message: 'Une erreur est survenue, veuillez réesayer s\'il vous plaît.'
+                        });
+                      });
                 })() : (() => {
                     res.render('error', {
                         status: 404,
@@ -127,8 +102,8 @@ exports.ticket = (req, res) => {
                         console.log(error);
                         res.render('error', {status: 500, message: 'Une erreur est survenue, veuillez essayer à nouveau s\'il vous plaît.'});
                     }
-                    res.render('billet',
-                        {identity: user.first_name+' '+user.last_name,
+                    res.render('billet',{
+                        identity: user.first_name+' '+user.last_name,
                         src: `data:image/jpg;base64,${data.toString('base64')}`
                     });
                 })
@@ -145,11 +120,24 @@ exports.regenerate = (req, res) => {
     User.findOne({ email: req.body.email })
         .then(user => {
             user ? (() => {
-                qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
-                    if (err) res.render("error");
-                    const full_name = user.first_name + ' ' + user.last_name;
-                    res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
-                });
+                if(user.status){
+                    qr.toFile(`./public/qrcodes/${user._id}.png`, `${req.protocol}://${req.get('host')}/${user._id}`, (err) => {
+                        if(err){
+                            console.log(err);
+                            res.render("error", {
+                                status: 500,
+                                message: "Une erreur est survenue, veuillez reéssayer ou contactez-nous pour obtenir de l'aide."
+                            });
+                        }
+                        const full_name = user.first_name + ' ' + user.last_name;
+                        res.render("bye", {identity: full_name.toUpperCase(), src: `${req.protocol}://${req.get('host')}/public/qrcodes/${user._id}.png`});
+                    });
+                }else{
+                    res.render("error", {
+                        status: 401,
+                        message: "Il semblerait que vous n'avez pas encore finalisé votre paiement, veuillez le faire pour obtenir votre QR Code."
+                    });
+                }
             })() : (() => {
                 res.render('error', {
                     status: 400,
@@ -159,6 +147,88 @@ exports.regenerate = (req, res) => {
         })
         .catch(error => {
             console.log(error);
-            res.status(400).json({ error });
+            res.render('error', {
+                status: 400,
+                message: "Données entrées invalides, veuillez réessayer s'il vous plait"
+            });
         })
+};
+
+exports.table = (req, res) => {
+    switch(req.params.status){
+        case 'all':
+            User.find({ })
+              .then(users => {
+                  let keys = {
+                      ...users[0].schema.paths
+                  };
+                  delete keys._id;
+                  delete keys.__v;
+                  delete keys.imageUrl;
+                  keys = Object.keys(keys);
+                  res.render('table', {
+                      keys: keys,
+                      users: users
+                    })
+              })
+              .catch(error => {
+                  console.log(error);
+                  res.render("error", {
+                      status: 500,
+                      message: error
+                  });
+              });
+        break;
+        case 'true':
+            User.find({ status: true })
+              .then(users => {
+                  let keys = {
+                      ...users[0].schema.paths
+                  };
+                  delete keys._id;
+                  delete keys.__v;
+                  delete keys.imageUrl;
+                  keys = Object.keys(keys);
+                  res.render('table', {
+                      keys: keys,
+                      users: users
+                    })
+              })
+              .catch(error => {
+                  console.log(error);
+                  res.render("error", {
+                      status: 500,
+                      message: error
+                  });
+              });
+        break;
+        case 'false':
+            User.find({ status: false })
+              .then(users => {
+                  let keys = {
+                      ...users[0].schema.paths
+                  };
+                  delete keys._id;
+                  delete keys.__v;
+                  delete keys.imageUrl;
+                  keys = Object.keys(keys);
+                  res.render('table', {
+                      keys: keys,
+                      users: users
+                    })
+              })
+              .catch(error => {
+                  console.log(error);
+                  res.render("error", {
+                      status: 500,
+                      message: error
+                  });
+              });
+        break;
+        default:
+            res.render("error", {
+                status: 400,
+                message: "Données entrées invalides."
+            });
+    }
 };

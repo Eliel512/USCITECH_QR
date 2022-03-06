@@ -8,7 +8,7 @@ app = express();
 
 app.set("view engine", "pug");
 
-mongoose.connect(process.env.MONGODB_URI ||'mongodb://localhost:27017',
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))

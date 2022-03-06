@@ -38,6 +38,15 @@ const userInfoSchema = new Schema({
     set: v => validator.normalizeEmail(v),
     unique: true
   },
+  code: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   imageUrl: {
     type: String,
     required: true,

@@ -6,14 +6,11 @@ const multer = require('../middleware/multer');
 const { storage } = require('../middleware/storage.js');
 
 router.get('/', appCtrl.home);
-//router.get('/about', appCtrl.about);
 router.get('/signup', appCtrl.getForm);
+router.get('/table/:status', appCtrl.table);
 router.post('/signup', multer, storage, appCtrl.postForm);
 router.post('/generate', appCtrl.generate);
 router.post('/regenerate', appCtrl.regenerate);
 router.get('/:user_id', appCtrl.ticket);
-//router.use('/filmotheque', filmothequeRoutes);
-//router.use('/phototheque', photothequeRoutes);
-//router.use('/frozen', frozenRoutes);
 
 module.exports = router;

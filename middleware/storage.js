@@ -15,7 +15,8 @@ exports.storage = (req, res, next) => {
     (async () => {
         const storage = await new Storage({
             email: 'elielmungo9@gmail.com',
-            password: 'Dexter512'
+            password: 'Dexter512',
+            keepalive: false
           }).ready
           
           storage.upload({name: filename + '.' + extension, allowUploadBuffering: true}, req.file.buffer, (error, uploadedFile) => {

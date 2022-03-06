@@ -65,9 +65,9 @@ style.
                   br
                   br
                   .form-group
-                    input.form-control(type='email' name='email' value=email readonly)
+                    input.form-control(type='email' name='email' value=email required readonly)
                   .form-group
-                    input.form-control(type='text' placeholder='inserer le code de confirmation' name='code')
+                    input.form-control(type='text' placeholder='insérer le code de confirmation' name='code' minlength='8' maxlength='8' required)
                   .form-group
                     input.btn.btn-primary.btn-pill(type='submit' value='VALIDER')
  

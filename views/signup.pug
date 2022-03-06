@@ -60,14 +60,14 @@ style.
                 form.form-box(method='post' action='/signup' enctype='multipart/form-data')
                   h3.h4.text-black.mb-4 Enregistrez vous pour obtenir le QR code
                   .form-group
-                    input.form-control(type='text' placeholder='Nom' name='fname')
+                    input.form-control(type='text' placeholder='Nom' name='fname' required style="input:invalid{border: 2px dashed red;}")
                   .form-group
-                    input.form-control(type='text' placeholder='Prenom' name='lname')
+                    input.form-control(type='text' placeholder='Prenom' name='lname' required style="input:invalid{border: 2px dashed red;}")
                   .form-group
-                    input.form-control(type='email' placeholder='Email' name='email')
+                    input.form-control(type='email' placeholder='Email' name='email'  pattern=/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/ required style="input:invalid{border: 2px dashed red;}")
                   .form-group.mb-4
                     .custom-file
-                      input.custom-file-input#hFichier(type='file' name='file' lang='fr' accept='.jpg,.jpeg,.png')
+                      input.custom-file-input#hFichier(type='file' name='file' lang='fr' accept='.jpg,.jpeg,.png' required)
                       label.custom-file-label(for='file')
                         h6 Votre photo
                     br

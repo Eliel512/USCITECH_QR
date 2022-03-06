@@ -48,7 +48,7 @@ exports.generate = (req, res) => {
                             if(err){
                                 res.render("error", {
                                     status: 500,
-                                    message: "Une erreur est survenue, veuillez essayer de regénérer votre QR code à partir de l'acceuil ou contactez-nous pour obtenir de l'aide."
+                                    message: "Une erreur est survenue, veuillez essayer de regénérer votre QR code à partir de l'acceuil ou <a href='mailto:elielmungo9@gmail.com'>contactez-nous</a> pour obtenir de l'aide."
                                 });
                             }
                             const full_name = user.first_name + ' ' + user.last_name;
@@ -65,7 +65,7 @@ exports.generate = (req, res) => {
                 })() : (() => {
                     res.render('error', {
                         status: 404,
-                        message: 'Code introuvable, veuillez réesayer s\'il vous plaît. Ou contactez-nous pour obtenir de l\'aide.'
+                        message: 'Code introuvable, veuillez réesayer s\'il vous plaît. Ou <a href=\'mailto:elielmungo9@gmail.com\'>contactez-nous</a> pour obtenir de l\'aide.'
                     });
                 })();
             }else {
@@ -126,7 +126,7 @@ exports.regenerate = (req, res) => {
                             console.log(err);
                             res.render("error", {
                                 status: 500,
-                                message: "Une erreur est survenue, veuillez reéssayer ou contactez-nous pour obtenir de l'aide."
+                                message: "Une erreur est survenue, veuillez reéssayer ou <a href='mailto:elielmungo9@gmail.com'>contactez-nous</a> pour obtenir de l'aide."
                             });
                         }
                         const full_name = user.first_name + ' ' + user.last_name;

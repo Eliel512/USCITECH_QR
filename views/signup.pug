@@ -64,7 +64,7 @@ style.
                   .form-group
                     input.form-control(type='text' placeholder='Prenom' name='lname' required style="input:invalid{border: 2px dashed red;}")
                   .form-group
-                    input.form-control(type='email' placeholder='Email' name='email'  pattern=/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/ required style="input:invalid{border: 2px dashed red;}")
+                    input.form-control(type='email' placeholder='Email' name='email'  pattern=/^[a-z.-_]+@{1}[a-z]{5}\.[a-z]{3}$/ required style="input:invalid{border: 2px dashed red;}")
                   .form-group.mb-4
                     .custom-file
                       input.custom-file-input#hFichier(type='file' name='file' lang='fr' accept='.jpg,.jpeg,.png' required)
